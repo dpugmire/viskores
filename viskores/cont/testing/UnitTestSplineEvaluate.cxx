@@ -105,15 +105,29 @@ std::vector<viskores::cont::DataSet> MakeDataSet3D(const std::vector<viskores::I
 }
 
 template <typename F>
-static void fillCoords(std::vector<viskores::FloatDefault>& coords, viskores::Id N, F g)
+std::vector<viskores::FloatDefault> fillCoords(viskores::Id N, F g)
 {
-  coords.resize(N);
+  std::vector<viskores::FloatDefault> coords(N);
   for (viskores::Id i = 0; i < N; ++i)
   {
     viskores::FloatDefault t = static_cast<viskores::FloatDefault>(i) / (N - 1);
     coords[i] = g(t);
   }
   coords[N - 1] = 1.0f;
+  return coords;
+}
+
+std::vector<viskores::FloatDefault> fillCoordsExp(viskores::Id N)
+{
+  std::vector<viskores::FloatDefault> coords;
+
+  coords = fillCoords(N,
+                      [](viskores::FloatDefault t)
+                      {
+                        const viskores::FloatDefault k = 3;
+                        return (std::exp(k * t) - 1) / (std::exp(k) - 1);
+                      });
+  return coords;
 }
 
 std::vector<viskores::cont::DataSet> MakeRectDataSet3D(const std::vector<viskores::Id3>& dims)
@@ -130,48 +144,30 @@ std::vector<viskores::cont::DataSet> MakeRectDataSet3D(const std::vector<viskore
       if (i == 0)
       {
         //uniform spacing.
-        fillCoords(xcoords, d[0], [](viskores::FloatDefault t) { return t; });
-        fillCoords(ycoords, d[1], [](viskores::FloatDefault t) { return t; });
-        fillCoords(zcoords, d[2], [](viskores::FloatDefault t) { return t; });
+        xcoords = fillCoords(d[0], [](viskores::FloatDefault t) { return t; });
+        ycoords = fillCoords(d[1], [](viskores::FloatDefault t) { return t; });
+        zcoords = fillCoords(d[2], [](viskores::FloatDefault t) { return t; });
       }
       else if (i == 1)
       {
         //quadratic clustering near 0.
-        fillCoords(xcoords, d[0], [](viskores::FloatDefault t) { return t * t; });
-        fillCoords(ycoords, d[1], [](viskores::FloatDefault t) { return t * t; });
-        fillCoords(zcoords, d[2], [](viskores::FloatDefault t) { return t * t; });
+        xcoords = fillCoords(d[0], [](viskores::FloatDefault t) { return t * t; });
+        ycoords = fillCoords(d[1], [](viskores::FloatDefault t) { return t * t; });
+        zcoords = fillCoords(d[2], [](viskores::FloatDefault t) { return t * t; });
       }
       else if (i == 2)
       {
         //quadratic clustering near 1.
-        fillCoords(xcoords, d[0], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
-        fillCoords(ycoords, d[1], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
-        fillCoords(zcoords, d[2], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
+        xcoords = fillCoords(d[0], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
+        ycoords = fillCoords(d[1], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
+        zcoords = fillCoords(d[2], [](viskores::FloatDefault t) { return 1 - (1 - t) * (1 - t); });
       }
       else if (i == 3)
       {
         //exponential
-        fillCoords(xcoords,
-                   d[0],
-                   [](viskores::FloatDefault t)
-                   {
-                     const viskores::FloatDefault k = 3;
-                     return (std::exp(k * t) - 1) / (std::exp(k) - 1);
-                   });
-        fillCoords(ycoords,
-                   d[1],
-                   [](viskores::FloatDefault t)
-                   {
-                     const viskores::FloatDefault k = 3;
-                     return (std::exp(k * t) - 1) / (std::exp(k) - 1);
-                   });
-        fillCoords(zcoords,
-                   d[2],
-                   [](viskores::FloatDefault t)
-                   {
-                     const viskores::FloatDefault k = 3;
-                     return (std::exp(k * t) - 1) / (std::exp(k) - 1);
-                   });
+        xcoords = fillCoordsExp(d[0]);
+        ycoords = fillCoordsExp(d[1]);
+        zcoords = fillCoordsExp(d[2]);
       }
 
       auto ds = builder.Create(xcoords, ycoords, zcoords);
