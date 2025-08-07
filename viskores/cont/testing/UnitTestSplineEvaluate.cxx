@@ -71,15 +71,16 @@ class GenerateData : public viskores::worklet::WorkletMapField
 {
 public:
   using ControlSignature = void(FieldIn pointsIn, FieldOut results);
-  //using ControlSignature = void(FieldIn coords, FieldOut fieldOut);
   using ExecutionSignature = void(_1, _2);
 
   VISKORES_EXEC
   void operator()(const viskores::Vec3f& point, viskores::FloatDefault& value) const
   {
-    // Example function to generate a field value based on the point coordinates.
-    // This is a placeholder for the actual field generation logic.
-    value = EvaluateNormalizedGyroid(point);
+    //f(x,y,z)=sin(2πx)cos(2πy)+sin(2πy)cos(2πz)+sin(2πz)cos(2πx)
+    value =
+      viskores::Sin(viskores::TwoPi() * point[0]) * viskores::Cos(viskores::TwoPi() * point[1]) +
+      viskores::Sin(viskores::TwoPi() * point[1]) * viskores::Cos(viskores::TwoPi() * point[2]) +
+      viskores::Sin(viskores::TwoPi() * point[2]) * viskores::Cos(viskores::TwoPi() * point[0]);
   }
 };
 
