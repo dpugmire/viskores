@@ -36,15 +36,13 @@ private:
     viskores::cont::ArrayHandleCartesianProduct<AxisType, AxisType, AxisType>;
   using FieldPortalType = typename FieldType::ReadPortalType;
   using AxisPortalType = typename AxisType::ReadPortalType;
-  using RectilinearPortalType = typename RectilinearCoordsType::ReadPortalType;
 
 public:
   VISKORES_CONT SplineEvaluateRectilinearGrid() = default;
 
-  template <typename AxisType, typename ArrayPortalType>
-  VISKORES_CONT SplineEvaluateRectilinearGrid(
-    viskores::cont::ArrayHandleCartesianProduct<AxisType, AxisType, AxisType> coords,
-    const ArrayPortalType& field)
+  template <typename ArrayPortalType>
+  VISKORES_CONT SplineEvaluateRectilinearGrid(const RectilinearCoordsType& coords,
+                                              const ArrayPortalType& field)
     : Field(field)
   {
     this->AxisPortals[0] = coords.GetFirstArray().ReadPortal();
@@ -79,7 +77,7 @@ public:
     if (this->NumZ < 4)
     {
       // --- bicubic: gather a 4×4 patch in X–Y at single k = clamp(iw,0,ny−1) ---
-      double P2d[4 * 4];
+      viskores::FloatDefault P2d[4 * 4];
       for (viskores::Id jj = 0; jj < 4; ++jj)
       {
         viskores::Id j = viskores::Clamp(iv - 1 + jj, 0, this->NumY);
@@ -91,7 +89,7 @@ public:
         }
       }
       // 3) bicubic along X → C2[4]
-      double C2[4];
+      viskores::FloatDefault C2[4];
       for (int jj = 0; jj < 4; ++jj)
       {
         auto x0 = this->AxisPortals[0].Get(iu - 1);

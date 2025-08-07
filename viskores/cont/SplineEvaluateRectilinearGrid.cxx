@@ -28,10 +28,8 @@ viskores::exec::SplineEvaluateRectilinearGrid SplineEvaluateRectilinearGrid::Pre
   viskores::cont::DeviceAdapterId device,
   viskores::cont::Token& token) const
 {
-  using RectCoordsType = viskores::cont::ArrayHandleCartesianProduct<
-    viskores::cont::ArrayHandle<viskores::FloatDefault>,
-    viskores::cont::ArrayHandle<viskores::FloatDefault>,
-    viskores::cont::ArrayHandle<viskores::FloatDefault>>;
+  using AxisType = viskores::cont::ArrayHandle<viskores::FloatDefault>;
+  using RectCoordsType = viskores::cont::ArrayHandleCartesianProduct<AxisType, AxisType, AxisType>;
 
   if (!this->DataSet.GetCoordinateSystem(0).GetData().IsType<RectCoordsType>())
     throw viskores::cont::ErrorBadType("Coordinates are not rectilinear type.");
