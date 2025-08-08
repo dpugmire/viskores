@@ -214,10 +214,14 @@ void CompareToLinear(SplineEvalType& splineEval,
   viskores::cont::ArrayHandle<viskores::FloatDefault> results;
 
   //Compare against linear interpolation.
+  std::cout << __LINE__ << std::endl;
   auto linearResult = CreateLinearInterpolationResult(ds, points);
+  std::cout << __LINE__ << std::endl;
 
   EvalWorklet evalWorklet;
+  std::cout << __LINE__ << std::endl;
   invoke(evalWorklet, points, splineEval, results);
+  std::cout << __LINE__ << std::endl;
 
   auto splinePortal = results.ReadPortal();
   auto linearPortal = linearResult.ReadPortal();
@@ -249,7 +253,9 @@ void CompareResults(SplineEvalType& splineEval,
   viskores::cont::Invoker invoke;
 
   EvalWorklet evalWorklet;
+  std::cout << __LINE__ << std::endl;
   invoke(evalWorklet, points, splineEval, results);
+  std::cout << __LINE__ << std::endl;
 
   auto resultsPortal = results.ReadPortal();
   auto expectedPortal = expectedValues.ReadPortal();
