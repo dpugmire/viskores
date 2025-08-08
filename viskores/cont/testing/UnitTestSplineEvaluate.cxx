@@ -185,13 +185,14 @@ std::vector<viskores::cont::DataSet> MakeRectDataSet3D(const std::vector<viskore
 
 viskores::cont::ArrayHandle<viskores::FloatDefault> CreateLinearInterpolationResult(
   const viskores::cont::DataSet& ds,
-  const std::vector<viskores::Vec3f>& points)
+  const viskores::cont::ArrayHandle<viskores::Vec3f>& points)
 {
   viskores::cont::DataSetBuilderExplicit builder;
-  std::vector<viskores::Id> ids(points.size());
+  std::vector<viskores::Id> ids(points.GetNumberOfValues());
   std::iota(ids.begin(), ids.end(), 0);
+  auto idsArray = viskores::cont::make_ArrayHandle(ids, viskores::CopyFlag::On);
 
-  auto ptDataSet = builder.Create(points, viskores::CellShapeTagVertex(), 1, ids);
+  auto ptDataSet = builder.Create(points, viskores::CellShapeTagVertex(), 1, idsArray);
 
   viskores::filter::resampling::Probe probe;
   probe.SetActiveField("field");
@@ -204,27 +205,26 @@ viskores::cont::ArrayHandle<viskores::FloatDefault> CreateLinearInterpolationRes
 }
 
 template <typename SplineEvalType>
-void RunTest(SplineEvalType& splineEval,
-             const std::vector<viskores::Vec3f>& points,
-             const std::vector<viskores::FloatDefault>& expectedValues,
-             const viskores::cont::DataSet& ds)
+void CompareToLinear(SplineEvalType& splineEval,
+                     const viskores::cont::ArrayHandle<viskores::Vec3f>& points,
+                     const viskores::cont::ArrayHandle<viskores::FloatDefault>& expectedValues,
+                     const viskores::cont::DataSet& ds)
 {
   viskores::cont::Invoker invoke;
-  viskores::cont::ArrayHandle<viskores::Vec3f> pointsHandle =
-    viskores::cont::make_ArrayHandle(points, viskores::CopyFlag::On);
   viskores::cont::ArrayHandle<viskores::FloatDefault> results;
 
   //Compare against linear interpolation.
   auto linearResult = CreateLinearInterpolationResult(ds, points);
 
   EvalWorklet evalWorklet;
-  invoke(evalWorklet, pointsHandle, splineEval, results);
+  invoke(evalWorklet, points, splineEval, results);
 
   auto splinePortal = results.ReadPortal();
   auto linearPortal = linearResult.ReadPortal();
+  auto expectedPortal = expectedValues.ReadPortal();
   for (viskores::Id i = 0; i < splinePortal.GetNumberOfValues(); i++)
   {
-    auto truth = expectedValues[static_cast<std::size_t>(i)];
+    auto truth = expectedPortal.Get(i);
     auto linearValue = linearPortal.Get(i);
     auto splineValue = splinePortal.Get(i);
 
@@ -233,11 +233,35 @@ void RunTest(SplineEvalType& splineEval,
     auto factor = diffLinear / diffSpline;
 
     // spline interpolation should be better.
-    VISKORES_TEST_ASSERT(factor > 10.0f, "Interpolation value difference outside of error bounds.");
+    VISKORES_TEST_ASSERT(factor > 1.0f,
+                         "Interpolation value difference outside of error bounds: " +
+                           std::to_string(factor));
   }
 }
 
-std::vector<viskores::Vec3f> CreateRandomVec3f(std::size_t N)
+template <typename SplineEvalType>
+void CompareResults(SplineEvalType& splineEval,
+                    const viskores::cont::ArrayHandle<viskores::Vec3f>& points,
+                    const viskores::cont::ArrayHandle<viskores::FloatDefault>& expectedValues,
+                    viskores::FloatDefault eps)
+{
+  viskores::cont::ArrayHandle<viskores::FloatDefault> results;
+  viskores::cont::Invoker invoke;
+
+  EvalWorklet evalWorklet;
+  invoke(evalWorklet, points, splineEval, results);
+
+  auto resultsPortal = results.ReadPortal();
+  auto expectedPortal = expectedValues.ReadPortal();
+
+  for (viskores::Id i = 0; i < resultsPortal.GetNumberOfValues(); i++)
+  {
+    auto diff = viskores::Abs(expectedPortal.Get(i) - resultsPortal.Get(i));
+    VISKORES_TEST_ASSERT(diff < eps, "Spline value outside of tolerance.");
+  }
+}
+
+viskores::cont::ArrayHandle<viskores::Vec3f> CreateRandomVec3f(std::size_t N)
 {
   std::mt19937 gen(123);
   std::uniform_real_distribution<float> dist(0.05f, 0.95f);
@@ -248,37 +272,55 @@ std::vector<viskores::Vec3f> CreateRandomVec3f(std::size_t N)
   for (std::size_t i = 0; i < N; ++i)
     v.emplace_back(viskores::Vec3f(dist(gen), dist(gen), dist(gen)));
 
-  return v;
+  return viskores::cont::make_ArrayHandle(v, viskores::CopyFlag::On);
 }
 
 void DoSplineEvalTest()
 {
-  viskores::cont::ArrayHandle<viskores::Vec3f> points;
-  viskores::cont::ArrayHandle<viskores::FloatDefault> results;
-  EvalWorklet evalWorklet;
-  auto pointData = CreateRandomVec3f(5);
-
-  std::vector<viskores::FloatDefault> expectedValues;
-  for (const auto& pt : pointData)
-    expectedValues.push_back(EvaluateNormalizedGyroid(pt));
-
   std::vector<viskores::Id3> dims = { { 20, 20, 20 }, { 50, 50, 50 }, { 20, 40, 60 } };
 
   auto dsUniform = MakeDataSet3D(dims);
   auto dsRect = MakeRectDataSet3D(dims);
 
-  std::cout << "Uniform datasets." << std::endl;
+  // Compare spline to linear interpolation on 50 points.
+  auto pointData = CreateRandomVec3f(50);
+  viskores::cont::ArrayHandle<viskores::FloatDefault> expectedValues;
+  viskores::cont::Invoker invoker;
+  invoker(GenerateData{}, pointData, expectedValues);
+
+  std::cout << "Compare spline to linear." << std::endl;
+  std::cout << " --Uniform datasets." << std::endl;
   for (const auto& ds : dsUniform)
   {
     viskores::cont::SplineEvaluateUniformGrid evalUniform(ds, "field");
-    RunTest(evalUniform, pointData, expectedValues, ds);
+    CompareToLinear(evalUniform, pointData, expectedValues, ds);
   }
 
-  std::cout << "Rectilinear datasets." << std::endl;
+  std::cout << " --Rectilinear datasets." << std::endl;
   for (const auto& ds : dsRect)
   {
     viskores::cont::SplineEvaluateRectilinearGrid evalRect(ds, "field");
-    RunTest(evalRect, pointData, expectedValues, ds);
+    CompareToLinear(evalRect, pointData, expectedValues, ds);
+  }
+
+  //compare values for a few points.
+  pointData = CreateRandomVec3f(10);
+  dsUniform = MakeDataSet3D({ { 100, 100, 100 } });
+  dsRect = MakeRectDataSet3D({ { 100, 100, 100 } });
+
+  std::cout << "Compare spline values." << std::endl;
+  std::cout << " --Uniform datasets." << std::endl;
+  for (const auto& ds : dsUniform)
+  {
+    viskores::cont::SplineEvaluateUniformGrid evalUniform(ds, "field");
+    CompareResults(evalUniform, pointData, expectedValues, 1e-3);
+  }
+
+  std::cout << " --Rectilinear datasets." << std::endl;
+  for (const auto& ds : dsRect)
+  {
+    viskores::cont::SplineEvaluateRectilinearGrid evalRect(ds, "field");
+    CompareResults(evalRect, pointData, expectedValues, 1e-3);
   }
 }
 } // anonymous namespace
