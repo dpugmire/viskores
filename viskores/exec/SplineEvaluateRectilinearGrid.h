@@ -74,18 +74,20 @@ public:
     viskores::Id iv = this->FindIndex(this->AxisPortals[1], this->NumY, point[1]);
     viskores::Id iw = this->FindIndex(this->AxisPortals[2], this->NumZ, point[2]);
 
+    VISKORES_ASSERT(this->NumX >= 4 && this->NumY >= 4);
+
     if (this->NumZ < 4)
     {
       // --- bicubic: gather a 4×4 patch in X–Y at single k = clamp(iw,0,ny−1) ---
       viskores::FloatDefault P2d[4 * 4];
       for (viskores::Id jj = 0; jj < 4; ++jj)
       {
-        viskores::Id j = viskores::Clamp(iv - 1 + jj, 0, this->NumY);
+        viskores::Id j = viskores::Clamp(iv - 1 + jj, 0, this->NumY - 1);
         for (viskores::Id ii = 0; ii < 4; ++ii)
         {
-          viskores::Id i = viskores::Clamp(iu - 1 + ii, 0, this->NumX);
+          viskores::Id i = viskores::Clamp(iu - 1 + ii, 0, this->NumX - 1);
           // flatten (i,j, 0) → data index
-          P2d[jj * 4 + ii] = this->Field.Get((j * this->NumX) + i);
+          P2d[jj * 4 + ii] = this->Field.Get((j * this->NumX - 1) + i);
         }
       }
       // 3) bicubic along X → C2[4]
@@ -111,13 +113,13 @@ public:
     viskores::FloatDefault P[4 * 4 * 4];
     for (viskores::Id kk = 0; kk < 4; ++kk)
     {
-      viskores::Id k = viskores::Clamp(iw - 1 + kk, 0, this->NumZ);
+      viskores::Id k = viskores::Clamp(iw - 1 + kk, 0, this->NumZ - 1);
       for (viskores::Id jj = 0; jj < 4; ++jj)
       {
-        viskores::Id j = viskores::Clamp(iv - 1 + jj, 0, this->NumY);
+        viskores::Id j = viskores::Clamp(iv - 1 + jj, 0, this->NumY - 1);
         for (viskores::Id ii = 0; ii < 4; ++ii)
         {
-          viskores::Id i = viskores::Clamp(iu - 1 + ii, 0, this->NumX);
+          viskores::Id i = viskores::Clamp(iu - 1 + ii, 0, this->NumX - 1);
           auto pIndex = (kk * 4 + jj) * 4 + ii;
           auto dIndex = (k * this->NumY + j) * this->NumX + i;
           P[pIndex] = this->Field.Get(dIndex);
