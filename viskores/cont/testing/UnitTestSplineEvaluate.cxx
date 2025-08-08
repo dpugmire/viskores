@@ -239,7 +239,7 @@ void RunTest(SplineEvalType& splineEval,
 
 std::vector<viskores::Vec3f> CreateRandomVec3f(std::size_t N)
 {
-  std::mt19937 gen(12);
+  std::mt19937 gen(123);
   std::uniform_real_distribution<float> dist(0.05f, 0.95f);
 
   std::vector<viskores::Vec3f> v;
