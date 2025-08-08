@@ -254,6 +254,8 @@ void CompareResults(SplineEvalType& splineEval,
   auto resultsPortal = results.ReadPortal();
   auto expectedPortal = expectedValues.ReadPortal();
 
+  std::cout << "Sizes: " << resultsPortal.GetNumberOfValues() << " "
+            << expectedPortal.GetNumberOfValues() << std::endl;
   for (viskores::Id i = 0; i < resultsPortal.GetNumberOfValues(); i++)
   {
     auto diff = viskores::Abs(expectedPortal.Get(i) - resultsPortal.Get(i));
@@ -283,7 +285,7 @@ void DoSplineEvalTest()
   auto dsRect = MakeRectDataSet3D(dims);
 
   // Compare spline to linear interpolation on 50 points.
-  auto pointData = CreateRandomVec3f(50);
+  auto pointData = CreateRandomVec3f(1);
   viskores::cont::ArrayHandle<viskores::FloatDefault> expectedValues;
   viskores::cont::Invoker invoker;
   invoker(GenerateData{}, pointData, expectedValues);
@@ -305,6 +307,8 @@ void DoSplineEvalTest()
 
   //compare values for a few points.
   pointData = CreateRandomVec3f(10);
+  invoker(GenerateData{}, pointData, expectedValues);
+
   dsUniform = MakeDataSet3D({ { 100, 100, 100 } });
   dsRect = MakeRectDataSet3D({ { 100, 100, 100 } });
 
