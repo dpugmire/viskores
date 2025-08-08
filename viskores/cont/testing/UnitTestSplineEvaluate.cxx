@@ -224,13 +224,21 @@ void CompareToLinear(SplineEvalType& splineEval,
   std::cout << __LINE__ << std::endl;
 
   auto splinePortal = results.ReadPortal();
+  std::cout << __LINE__ << std::endl;
   auto linearPortal = linearResult.ReadPortal();
+  std::cout << __LINE__ << std::endl;
   auto expectedPortal = expectedValues.ReadPortal();
+  std::cout << __LINE__ << std::endl;
   for (viskores::Id i = 0; i < splinePortal.GetNumberOfValues(); i++)
   {
+    std::cout << "i= " << i << std::endl;
+    std::cout << __LINE__ << std::endl;
     auto truth = expectedPortal.Get(i);
+    std::cout << __LINE__ << std::endl;
     auto linearValue = linearPortal.Get(i);
+    std::cout << __LINE__ << std::endl;
     auto splineValue = splinePortal.Get(i);
+    std::cout << __LINE__ << std::endl;
 
     auto diffLinear = viskores::Abs(truth - linearValue);
     auto diffSpline = viskores::Abs(truth - splineValue);
