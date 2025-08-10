@@ -301,6 +301,7 @@ void DoSplineEvalTest()
   auto dsRect = MakeRectDataSet3D(dims);
 
   // Compare spline to linear interpolation on 50 points.
+  std::cout << __LINE__ << std::endl;
   auto pointData = CreateRandomVec3f(1);
   viskores::cont::ArrayHandle<viskores::FloatDefault> expectedValues;
   viskores::cont::Invoker invoker;

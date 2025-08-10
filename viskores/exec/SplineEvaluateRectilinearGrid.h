@@ -76,7 +76,7 @@ public:
     viskores::Id iv = this->FindIndex(this->AxisPortals[1], this->NumY, point[1]);
     viskores::Id iw = this->FindIndex(this->AxisPortals[2], this->NumZ, point[2]);
     printf("cnt= %d\n", cnt++);
-    printf("iuvw= %ld %ld %ld", iu, iv, iw);
+    printf("iuvw= %d %d %d", (int)iu, (int)iv, (int)iw);
 
     VISKORES_ASSERT(this->NumX >= 4 && this->NumY >= 4);
     printf("cnt= %d\n", cnt++);
@@ -130,7 +130,7 @@ public:
           auto pIndex = (kk * 4 + jj) * 4 + ii;
           auto dIndex = (k * this->NumY + j) * this->NumX + i;
           printf("cnt= %d\n", cnt++);
-          printf("index= %d\n", dIndex);
+          printf("index= %d\n", (int)dIndex);
           P[pIndex] = this->Field.Get(dIndex);
           printf("cnt= %d\n", cnt++);
         }
