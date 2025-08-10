@@ -220,6 +220,7 @@ void CompareToLinear(SplineEvalType& splineEval,
 
   EvalWorklet evalWorklet;
   std::cout << __LINE__ << std::endl;
+  std::cout << "pt= " << points.ReadPortal().Get(0) << std::endl;
   invoke(evalWorklet, points, splineEval, results);
   std::cout << __LINE__ << std::endl;
 
