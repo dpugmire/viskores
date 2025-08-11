@@ -64,7 +64,7 @@ public:
                                              viskores::FloatDefault& value) const
   {
     int cnt = 0;
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
     if (!this->Bounds.Contains(point))
       return viskores::ErrorCode::CellNotFound;
 
@@ -75,15 +75,15 @@ public:
     viskores::Id iu = this->FindIndex(this->AxisPortals[0], this->NumX, point[0]);
     viskores::Id iv = this->FindIndex(this->AxisPortals[1], this->NumY, point[1]);
     viskores::Id iw = this->FindIndex(this->AxisPortals[2], this->NumZ, point[2]);
-    printf("cnt= %d\n", cnt++);
-    printf("iuvw= %d %d %d", (int)iu, (int)iv, (int)iw);
+    //printf("cnt= %d\n", cnt++);
+    //printf("iuvw= %d %d %d", (int)iu, (int)iv, (int)iw);
 
     VISKORES_ASSERT(this->NumX >= 4 && this->NumY >= 4);
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
 
     if (this->NumZ < 4)
     {
-      printf("A: cnt= %d\n", cnt++);
+      //printf("A: cnt= %d\n", cnt++);
       // --- bicubic: gather a 4×4 patch in X–Y at single k = clamp(iw,0,ny−1) ---
       viskores::FloatDefault P2d[4 * 4];
       for (viskores::Id jj = 0; jj < 4; ++jj)
@@ -116,7 +116,7 @@ public:
       return viskores::ErrorCode::Success;
     }
 
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
     viskores::FloatDefault P[4 * 4 * 4];
     for (viskores::Id kk = 0; kk < 4; ++kk)
     {
@@ -129,10 +129,10 @@ public:
           viskores::Id i = viskores::Clamp(iu - 1 + ii, 0, this->NumX - 1);
           auto pIndex = (kk * 4 + jj) * 4 + ii;
           auto dIndex = (k * this->NumY + j) * this->NumX + i;
-          printf("cnt= %d\n", cnt++);
-          printf("index= %d\n", (int)dIndex);
+          //printf("cnt= %d\n", cnt++);
+          //printf("index= %d\n", (int)dIndex);
           P[pIndex] = this->Field.Get(dIndex);
-          printf("cnt= %d\n", cnt++);
+          //printf("cnt= %d\n", cnt++);
         }
       }
     }
@@ -142,46 +142,46 @@ public:
     for (int kk = 0; kk < 4; ++kk)
       for (int jj = 0; jj < 4; ++jj)
       {
-        printf("cnt= %d\n", cnt++);
+        //printf("cnt= %d\n", cnt++);
         auto x0 = this->AxisPortals[0].Get(iu - 1);
         auto x1 = this->AxisPortals[0].Get(iu);
         auto x2 = this->AxisPortals[0].Get(iu + 1);
         auto x3 = this->AxisPortals[0].Get(iu + 2);
-        printf("cnt= %d\n", cnt++);
+        //printf("cnt= %d\n", cnt++);
         auto p0 = P[(kk * 4 + jj) * 4 + 0];
         auto p1 = P[(kk * 4 + jj) * 4 + 1];
         auto p2 = P[(kk * 4 + jj) * 4 + 2];
         auto p3 = P[(kk * 4 + jj) * 4 + 3];
-        printf("cnt= %d\n", cnt++);
+        //printf("cnt= %d\n", cnt++);
         Cbuf[kk * 4 + jj] = this->CubicInterpolateNonUniform(x0, x1, x2, x3, p0, p1, p2, p3, x);
-        printf("cnt= %d\n", cnt++);
+        //printf("cnt= %d\n", cnt++);
       }
 
     // interpolate in Y → D[4]
     viskores::FloatDefault D[4];
     for (int kk = 0; kk < 4; ++kk)
     {
-      printf("kk= %d\n", kk);
-      printf("cnt= %d\n", cnt++);
+      //printf("kk= %d\n", kk);
+      //printf("cnt= %d\n", cnt++);
       auto y0 = this->AxisPortals[1].Get(iv - 1);
       auto y1 = this->AxisPortals[1].Get(iv);
       auto y2 = this->AxisPortals[1].Get(iv + 1);
       auto y3 = this->AxisPortals[1].Get(iv + 2);
-      printf("cnt= %d\n", cnt++);
+      //printf("cnt= %d\n", cnt++);
       D[kk] = this->CubicInterpolateNonUniform(
         y0, y1, y2, y3, Cbuf[kk * 4 + 0], Cbuf[kk * 4 + 1], Cbuf[kk * 4 + 2], Cbuf[kk * 4 + 3], y);
-      printf("cnt= %d\n", cnt++);
+      //printf("cnt= %d\n", cnt++);
     }
 
     // interpolate in Z
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
     auto z0 = this->AxisPortals[2].Get(iw - 1);
     auto z1 = this->AxisPortals[2].Get(iw);
     auto z2 = this->AxisPortals[2].Get(iw + 1);
     auto z3 = this->AxisPortals[2].Get(iw + 2);
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
     value = this->CubicInterpolateNonUniform(z0, z1, z2, z3, D[0], D[1], D[2], D[3], z);
-    printf("cnt= %d\n", cnt++);
+    //printf("cnt= %d\n", cnt++);
 
     return viskores::ErrorCode::Success;
   }
