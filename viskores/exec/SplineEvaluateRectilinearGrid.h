@@ -40,14 +40,14 @@ private:
 public:
   VISKORES_CONT SplineEvaluateRectilinearGrid() = default;
 
-  template <typename ArrayPortalType>
-  VISKORES_CONT SplineEvaluateRectilinearGrid(const RectilinearCoordsType& coords,
+  template <typename CoordsType, typename ArrayPortalType>
+  VISKORES_CONT SplineEvaluateRectilinearGrid(const CoordsType& coords,
                                               const ArrayPortalType& field)
     : Field(field)
   {
-    this->AxisPortals[0] = coords.GetFirstArray().ReadPortal();
-    this->AxisPortals[1] = coords.GetSecondArray().ReadPortal();
-    this->AxisPortals[2] = coords.GetThirdArray().ReadPortal();
+    this->AxisPortals[0] = coords.GetFirstPortal();
+    this->AxisPortals[1] = coords.GetSecondPortal();
+    this->AxisPortals[2] = coords.GetThirdPortal();
 
     this->NumX = this->AxisPortals[0].GetNumberOfValues();
     this->NumY = this->AxisPortals[1].GetNumberOfValues();

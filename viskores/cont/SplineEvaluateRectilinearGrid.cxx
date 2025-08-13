@@ -31,6 +31,7 @@ viskores::exec::SplineEvaluateRectilinearGrid SplineEvaluateRectilinearGrid::Pre
   using AxisType = viskores::cont::ArrayHandle<viskores::FloatDefault>;
   using RectCoordsType = viskores::cont::ArrayHandleCartesianProduct<AxisType, AxisType, AxisType>;
 
+
   if (!this->DataSet.GetCoordinateSystem(0).GetData().IsType<RectCoordsType>())
     throw viskores::cont::ErrorBadType("Coordinates are not rectilinear type.");
 
@@ -38,9 +39,9 @@ viskores::exec::SplineEvaluateRectilinearGrid SplineEvaluateRectilinearGrid::Pre
   this->DataSet.GetField(this->FieldName).GetData().AsArrayHandle(fieldArray);
 
   RectCoordsType coords;
-  coords = this->DataSet.GetCoordinateSystem(0).GetData().AsArrayHandle<RectCoordsType>();
+  coords = this->DataSet.GetCoordinateSystem(0).GetData().template AsArrayHandle<RectCoordsType>();
 
-  return viskores::exec::SplineEvaluateRectilinearGrid(coords,
+  return viskores::exec::SplineEvaluateRectilinearGrid(coords.PrepareForInput(device, token),
                                                        fieldArray.PrepareForInput(device, token));
 }
 
