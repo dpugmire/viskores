@@ -196,11 +196,13 @@ private:
                                        viskores::FloatDefault val) const
   {
     // 1) Binary search for the largest index i with coords[i] <= val
+    printf("FindAxis: %f: range= %d %d\n", val, (int)N, (int)axis.GetNumberOfValues());
     viskores::Id left = 0;
     viskores::Id right = N - 1;
     while (left <= right)
     {
       viskores::Id mid = left + (right - left) / 2;
+      printf(" axis.Get(%d)\n", (int)mid);
       if (axis.Get(mid) <= val)
       {
         // mid is still ≤ val, so it might be our i
