@@ -319,7 +319,7 @@ void DoSplineEvalTest()
   }
   std::cout << __LINE__ << std::endl;
 
-#if 0
+
   std::cout << " --Rectilinear datasets." << std::endl;
   for (const auto& ds : dsRect)
   {
@@ -328,6 +328,7 @@ void DoSplineEvalTest()
   }
   std::cout << __LINE__ << std::endl;
 
+#if 0
   //compare values for a few points.
   pointData = CreateRandomVec3f(10);
   std::cout << __LINE__ << std::endl;
@@ -361,5 +362,7 @@ void DoSplineEvalTest()
 
 int UnitTestSplineEvaluate(int argc, char* argv[])
 {
+  //viskores::cont::GetRuntimeDeviceTracker().ForceDevice(viskores::cont::DeviceAdapterTagCUDA{});
+
   return viskores::cont::testing::Testing::Run(DoSplineEvalTest, argc, argv);
 }
