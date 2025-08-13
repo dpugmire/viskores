@@ -214,32 +214,19 @@ void CompareToLinear(SplineEvalType& splineEval,
   viskores::cont::ArrayHandle<viskores::FloatDefault> results;
 
   //Compare against linear interpolation.
-  std::cout << __LINE__ << std::endl;
   auto linearResult = CreateLinearInterpolationResult(ds, points);
-  std::cout << __LINE__ << std::endl;
 
   EvalWorklet evalWorklet;
-  std::cout << __LINE__ << std::endl;
-  std::cout << "pt= " << points.ReadPortal().Get(0) << std::endl;
   invoke(evalWorklet, points, splineEval, results);
-  std::cout << __LINE__ << std::endl;
 
   auto splinePortal = results.ReadPortal();
-  std::cout << __LINE__ << std::endl;
   auto linearPortal = linearResult.ReadPortal();
-  std::cout << __LINE__ << std::endl;
   auto expectedPortal = expectedValues.ReadPortal();
-  std::cout << __LINE__ << std::endl;
   for (viskores::Id i = 0; i < splinePortal.GetNumberOfValues(); i++)
   {
-    std::cout << "i= " << i << std::endl;
-    std::cout << __LINE__ << std::endl;
     auto truth = expectedPortal.Get(i);
-    std::cout << __LINE__ << std::endl;
     auto linearValue = linearPortal.Get(i);
-    std::cout << __LINE__ << std::endl;
     auto splineValue = splinePortal.Get(i);
-    std::cout << __LINE__ << std::endl;
 
     auto diffLinear = viskores::Abs(truth - linearValue);
     auto diffSpline = viskores::Abs(truth - splineValue);
@@ -250,7 +237,6 @@ void CompareToLinear(SplineEvalType& splineEval,
                          "Interpolation value difference outside of error bounds: " +
                            std::to_string(factor));
   }
-  std::cout << __LINE__ << std::endl;
 }
 
 template <typename SplineEvalType>
@@ -263,15 +249,11 @@ void CompareResults(SplineEvalType& splineEval,
   viskores::cont::Invoker invoke;
 
   EvalWorklet evalWorklet;
-  std::cout << __LINE__ << std::endl;
   invoke(evalWorklet, points, splineEval, results);
-  std::cout << __LINE__ << std::endl;
 
   auto resultsPortal = results.ReadPortal();
   auto expectedPortal = expectedValues.ReadPortal();
 
-  std::cout << "Sizes: " << resultsPortal.GetNumberOfValues() << " "
-            << expectedPortal.GetNumberOfValues() << std::endl;
   for (viskores::Id i = 0; i < resultsPortal.GetNumberOfValues(); i++)
   {
     auto diff = viskores::Abs(expectedPortal.Get(i) - resultsPortal.Get(i));
@@ -301,24 +283,18 @@ void DoSplineEvalTest()
   auto dsRect = MakeRectDataSet3D(dims);
 
   // Compare spline to linear interpolation on 50 points.
-  std::cout << __LINE__ << std::endl;
-  auto pointData = CreateRandomVec3f(1);
+  auto pointData = CreateRandomVec3f(50);
   viskores::cont::ArrayHandle<viskores::FloatDefault> expectedValues;
   viskores::cont::Invoker invoker;
-  std::cout << __LINE__ << std::endl;
   invoker(GenerateData{}, pointData, expectedValues);
-  std::cout << __LINE__ << std::endl;
 
   std::cout << "Compare spline to linear." << std::endl;
   std::cout << " --Uniform datasets." << std::endl;
-  std::cout << __LINE__ << std::endl;
   for (const auto& ds : dsUniform)
   {
     viskores::cont::SplineEvaluateUniformGrid evalUniform(ds, "field");
     CompareToLinear(evalUniform, pointData, expectedValues, ds);
   }
-  std::cout << __LINE__ << std::endl;
-
 
   std::cout << " --Rectilinear datasets." << std::endl;
   for (const auto& ds : dsRect)
@@ -326,37 +302,28 @@ void DoSplineEvalTest()
     viskores::cont::SplineEvaluateRectilinearGrid evalRect(ds, "field");
     CompareToLinear(evalRect, pointData, expectedValues, ds);
   }
-  std::cout << __LINE__ << std::endl;
 
-#if 0
   //compare values for a few points.
   pointData = CreateRandomVec3f(10);
-  std::cout << __LINE__ << std::endl;
   invoker(GenerateData{}, pointData, expectedValues);
-  std::cout << __LINE__ << std::endl;
 
   dsUniform = MakeDataSet3D({ { 100, 100, 100 } });
   dsRect = MakeRectDataSet3D({ { 100, 100, 100 } });
 
   std::cout << "Compare spline values." << std::endl;
   std::cout << " --Uniform datasets." << std::endl;
-  std::cout << __LINE__ << std::endl;
   for (const auto& ds : dsUniform)
   {
     viskores::cont::SplineEvaluateUniformGrid evalUniform(ds, "field");
     CompareResults(evalUniform, pointData, expectedValues, 1e-3);
   }
-  std::cout << __LINE__ << std::endl;
 
   std::cout << " --Rectilinear datasets." << std::endl;
-  std::cout << __LINE__ << std::endl;
   for (const auto& ds : dsRect)
   {
     viskores::cont::SplineEvaluateRectilinearGrid evalRect(ds, "field");
     CompareResults(evalRect, pointData, expectedValues, 1e-3);
   }
-  std::cout << __LINE__ << std::endl;
-#endif
 }
 } // anonymous namespace
 
