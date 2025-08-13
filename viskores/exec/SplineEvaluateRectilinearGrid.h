@@ -67,13 +67,17 @@ public:
     printf("cnt= %d\n", cnt++);
     if (!this->Bounds.Contains(point))
       return viskores::ErrorCode::CellNotFound;
+    printf("cnt= %d\n", cnt++);
 
     auto x = point[0];
     auto y = point[1];
     auto z = point[2];
+    printf("cnt= %d\n", cnt++);
 
     viskores::Id iu = this->FindIndex(this->AxisPortals[0], this->NumX, point[0]);
+    printf("cnt= %d\n", cnt++);
     viskores::Id iv = this->FindIndex(this->AxisPortals[1], this->NumY, point[1]);
+    printf("cnt= %d\n", cnt++);
     viskores::Id iw = this->FindIndex(this->AxisPortals[2], this->NumZ, point[2]);
     printf("cnt= %d\n", cnt++);
     printf("iuvw= %d %d %d", (int)iu, (int)iv, (int)iw);
@@ -216,6 +220,8 @@ private:
       i = 1;
     else if (i > N - 3)
       i = N - 3;
+
+    printf("FindIndex: %f: N= %d i= %d\n", val, (int)N, (int)i);
 
     return i;
   }
