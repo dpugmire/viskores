@@ -162,6 +162,12 @@ void TransferFunction1D::finalize()
     static_cast<viskores::Float32>(viskores::Magnitude(bounds.MaxCorner() - bounds.MinCorner()));
   constexpr viskores::IdComponent numberOfSamples = 200;
   this->m_sampleDistance = static_cast<viskores::Float32>(diagonalLength / numberOfSamples);
+  if (this->m_unitDistance <= 0.f)
+  {
+    this->reportMessage(ANARI_SEVERITY_WARNING,
+                        "'unitDistance' must be positive; using a small positive value");
+    this->m_unitDistance = 1e-6f;
+  }
 
   // Reset and fill color table
   viskores::cont::ColorTable colorTable{ viskores::ColorSpace::RGB };
@@ -229,26 +235,6 @@ void TransferFunction1D::finalize()
     colorTable.AddPointAlpha(1, this->m_alpha);
   }
 
-  // The alpha channel provided by ANARI is actually meant to be interpreted as
-  // a transparency coefficient whereas the Viskores volume mapper uses the
-  // alpha channel as the opacity between two samples. The relationship between
-  // the two is:
-  //
-  // opacity = 1 - exp(-transparency * distance)
-  //
-  // Generally, the distance here will be the uniform sample distance used in
-  // the ray stepper. However, the units of the color distance might not be the
-  // same as the spatial units. This is given by ANARI's unit distance
-  // parameter, which can be used to convert the spatial units.
-  viskores::Float32 alphaSampleDistance = this->m_sampleDistance / this->m_unitDistance;
-  for (viskores::IdComponent pointId = 0; pointId < colorTable.GetNumberOfPointsAlpha(); ++pointId)
-  {
-    viskores::Vec4f_64 alphaPoint;
-    colorTable.GetPointAlpha(pointId, alphaPoint);
-    alphaPoint[1] = 1.0f - viskores::Exp(-alphaSampleDistance * alphaPoint[1]);
-    colorTable.UpdatePointAlpha(pointId, alphaPoint);
-  }
-
   colorTable.RescaleToRange(this->m_valueRange);
 
   // Now that we have the color table, build a simple map array that the render caster
@@ -265,13 +251,16 @@ void TransferFunction1D::finalize()
   this->m_colorMap.Allocate(1024);
   auto portal = this->m_colorMap.WritePortal();
   auto colorPortal = temp.ReadPortal();
+  const viskores::Float32 alphaSampleDistance = this->m_sampleDistance / this->m_unitDistance;
   for (viskores::Id i = 0; i < 1024; ++i)
   {
     auto color = colorPortal.Get(i);
+    viskores::Float32 opacity = color[3] * conversionToFloatSpace;
+    opacity = opacity >= 1.f ? 1.f : 1.f - viskores::Pow(1.f - opacity, alphaSampleDistance);
     viskores::Vec4f_32 t(color[0] * conversionToFloatSpace,
                          color[1] * conversionToFloatSpace,
                          color[2] * conversionToFloatSpace,
-                         color[3] * conversionToFloatSpace);
+                         opacity);
     portal.Set(i, t);
   }
 }
