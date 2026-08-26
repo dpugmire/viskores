@@ -256,6 +256,28 @@ void TransferFunction1D::finalize()
   {
     auto color = colorPortal.Get(i);
     viskores::Float32 opacity = color[3] * conversionToFloatSpace;
+    // The opacity given is based on the unit distance. We need to scale that
+    // to be the opacity for the sampling distance of the ray caster. This
+    // scaling is nonlinear.
+    //
+    // Opacity (α) scales exponentially with respect to the distance the ray
+    // travels through the material (d).
+    //
+    // α = 1 - exp(-τ·d)
+    //
+    // where τ is the "transparency coefficient" based on the absorption of the
+    // material, which is independent of the distance. Flipping this relationship,
+    // we get
+    //
+    // τ = -(1/d)·ln(1-α).
+    //
+    // We are given a unit distance, d_u, and an opacity based on that
+    // sampling distance, α_u. That means τ = -(1/d_u)·ln(1-α_u). Returning to
+    // the first equation defining α and substituting this τ and the ray caster's
+    // sample distance, d_s, we get the following opacity for the sample
+    // distance.
+    //
+    // α_s = 1 - (1 - α_u)^(d_s/d_u)
     opacity = opacity >= 1.f ? 1.f : 1.f - viskores::Pow(1.f - opacity, alphaSampleDistance);
     viskores::Vec4f_32 t(color[0] * conversionToFloatSpace,
                          color[1] * conversionToFloatSpace,
