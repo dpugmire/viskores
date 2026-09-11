@@ -170,6 +170,8 @@ void Sphere::render(viskores::rendering::Canvas& canvas,
 
   tracer.SetField(field, fieldRange);
   tracer.GetCamera() = rayCamera;
+  tracer.SetLightPosition(rayCamera.GetPosition() +
+                          viskores::Vec3f_32(2, 2, 2) * rayCamera.GetUp());
   tracer.SetColorMap(colorMap);
   tracer.Render(rays);
 

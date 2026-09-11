@@ -139,6 +139,8 @@ void Quad::render(viskores::rendering::Canvas& canvas,
 
   rayCamera.CreateRays(rays, shapeBounds);
   tracer.GetCamera() = rayCamera;
+  tracer.SetLightPosition(rayCamera.GetPosition() +
+                          viskores::Vec3f_32(2, 2, 2) * rayCamera.GetUp());
   rays.Buffers.at(0).InitConst(0.f);
   viskores::rendering::raytracing::RayOperations::MapCanvasToRays(
     rays, camera.CreateRaytracingCamera(width, height), canvasRT->GetDepthBuffer());
